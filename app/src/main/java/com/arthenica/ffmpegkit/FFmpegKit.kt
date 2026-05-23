@@ -18,10 +18,19 @@ object FFmpegKit {
         }
 
         val inputPath = arguments[inputIndex + 1]
+        fun looksLikeFilePath(token: String): Boolean =
+            token.contains("/") || token.contains("\\") || token.contains(".")
+
         val outputPath = arguments
             .asList()
             .asReversed()
-            .firstOrNull { token -> !token.startsWith("-") && token != inputPath }
+            .firstOrNull { token ->
+                !token.startsWith("-") && token != inputPath && looksLikeFilePath(token)
+            }
+            ?: arguments
+                .asList()
+                .asReversed()
+                .firstOrNull { token -> !token.startsWith("-") && token != inputPath }
             ?: return Session(1, "Missing output argument")
 
         return try {
