@@ -4,9 +4,8 @@ Clearit is an Android app that lets you pick a video and produce a clearer HD ve
 
 ## What it does
 - Selects a source video from storage.
-- Upscales the video to at least 1080p/1920 width (based on orientation).
-- Processes the selected video output (currently via built-in compatibility processing).
-- Saves the enhanced output to the app's `enhanced_videos` folder.
+- Processes the selected video output.
+- Saves the output video to the app's `enhanced_videos` folder.
 
 ## Build & test
 ```bash
@@ -20,4 +19,4 @@ Clearit is an Android app that lets you pick a video and produce a clearer HD ve
 - Download the `clearit-debug-apk` artifact to get `app-debug.apk`.
 
 ## Processing backend note
-The upstream FFmpeg Kit Android artifacts used by older builds are no longer reliably resolvable from public Maven repositories. This project now includes a local compatibility backend so CI builds remain stable.
+The upstream FFmpeg Kit Android artifacts used by older builds are no longer reliably resolvable from public Maven repositories. This project now includes a local compatibility backend that currently copies the selected input video to the output path so CI builds remain stable until a full processing backend is reintroduced.

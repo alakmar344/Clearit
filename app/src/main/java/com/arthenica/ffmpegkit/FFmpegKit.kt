@@ -32,11 +32,11 @@ object FFmpegKit {
                 return Session(1, "Failed to create output directory: ${parent.absolutePath}")
             }
             inputFile.copyTo(outputFile, overwrite = true)
-            Session(0, "FFmpegKit fallback applied: input copied to output")
+            Session(0, "Compatibility mode applied: input copied without FFmpeg enhancement")
         } catch (error: Throwable) {
             Session(
                 1,
-                "File processing failed: ${error::class.java.simpleName}: ${error.message ?: "no details"}"
+                "File processing failed: ${error::class.simpleName}: ${error.message ?: "no details"}"
             )
         }
     }
