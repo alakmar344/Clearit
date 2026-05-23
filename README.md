@@ -1,11 +1,12 @@
 # Clearit
 
-Clearit is an Android app that lets you pick a video and produce a clearer HD version.
+Clearit is an Android app that lets you pick an image or video and produce a clearer result.
 
 ## What it does
-- Selects a source video from storage.
-- Processes the selected video output.
-- Saves the output video to the app's `enhanced_videos` folder.
+- Selects a source image or video from storage.
+- Enhances image sharpness and contrast using on-device bitmap processing.
+- Processes selected video output through the app's video enhancement pipeline.
+- Saves enhanced images and videos to gallery albums (`Pictures/Clearit` and `Movies/Clearit`).
 
 ## Build & test
 ```bash
@@ -19,8 +20,8 @@ Clearit is an Android app that lets you pick a video and produce a clearer HD ve
 - Download the `clearit-debug-apk` artifact to get `app-debug.apk`.
 
 ## Processing backend note
-The upstream FFmpeg Kit Android artifacts used by older builds are no longer reliably resolvable from public Maven repositories. This project now includes a temporary local stub backend that copies the selected input video to the output path. This keeps CI builds stable until a full video-processing backend is reintroduced.
-Video enhancement features (such as upscaling and sharpening) are currently disabled in this fallback mode.
+The app now performs real image enhancement in-app before saving to gallery albums.
+Video enhancement still uses the FFmpeg-style pipeline entrypoint in `VideoEnhancer`, but the local compatibility backend remains in place for environments where upstream FFmpeg Kit artifacts are unavailable.
 
 ## Alternative base approach (Python RealESRGAN)
 ```python

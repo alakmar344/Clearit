@@ -1,14 +1,17 @@
 <resources>
     <string name="app_name">Clearit</string>
-    <string name="app_title">Video Clarity Enhancer</string>
-    <string name="app_description">Select a video and Clearit will upscale to HD and apply sharpening for clearer footage.</string>
+    <string name="app_title">Media Clarity Enhancer</string>
+    <string name="app_description">Select an image or video and Clearit will enhance clarity and save the result to your gallery albums.</string>
+    <string name="select_image">Select image</string>
     <string name="select_video">Select video</string>
-    <string name="enhance_video">Enhance video</string>
-    <string name="no_video_selected">No video selected</string>
-    <string name="selected_video">Selected: %1$s</string>
-    <string name="select_video_prompt">Please select a video first.</string>
-    <string name="processing">Enhancing video. Please wait...</string>
+    <string name="enhance_video">Enhance media</string>
+    <string name="no_media_selected">No media selected</string>
+    <string name="selected_media">Selected: %1$s</string>
+    <string name="select_media_prompt">Please select an image or video first.</string>
+    <string name="unsupported_media">Unsupported media type selected.</string>
+    <string name="storage_permission_required">Storage permission is required to save output to gallery on this Android version.</string>
+    <string name="processing">Enhancing %1$s. Please wait...</string>
     <string name="status_idle">Status: idle</string>
-    <string name="output_ready">Done. Output saved to: %1$s</string>
+    <string name="output_ready">Done. Saved to album: %1$s</string>
     <string name="processing_failed">Enhancement failed: %1$s</string>
 </resources>

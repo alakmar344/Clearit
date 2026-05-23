@@ -20,18 +20,25 @@
         android:text="@string/app_description" />
 
     <Button
-        android:id="@+id/selectVideoButton"
+        android:id="@+id/selectImageButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
+        android:text="@string/select_image" />
+
+    <Button
+        android:id="@+id/selectVideoButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:text="@string/select_video" />
 
     <TextView
-        android:id="@+id/selectedVideoLabel"
+        android:id="@+id/selectedMediaLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/no_video_selected" />
+        android:text="@string/no_media_selected" />
 
     <Button
         android:id="@+id/enhanceButton"
