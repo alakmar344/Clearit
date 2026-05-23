@@ -32,7 +32,7 @@ object FFmpegKit {
                 return Session(1, "Failed to create output directory: ${parent.absolutePath}")
             }
             inputFile.copyTo(outputFile, overwrite = true)
-            Session(0, "Video processing temporarily unavailable: file copied to output location")
+            Session(0, "File copied successfully (video processing backend unavailable)")
         } catch (error: Throwable) {
             Session(
                 1,
