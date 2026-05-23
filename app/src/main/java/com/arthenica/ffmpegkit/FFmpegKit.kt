@@ -12,13 +12,11 @@ object FFmpegKit {
         }
 
         val inputPath = arguments[inputIndex + 1]
-        val outputPath = arguments
-            .asList()
-            .asReversed()
-            .firstOrNull { token ->
-                token != inputPath && !token.startsWith("-")
-            }
+        val outputPath = arguments.lastOrNull()
             ?: return Session(1, "Missing output argument")
+        if (outputPath == inputPath || outputPath.startsWith("-")) {
+            return Session(1, "Invalid output argument")
+        }
 
         return try {
             val inputFile = File(inputPath)
@@ -29,7 +27,10 @@ object FFmpegKit {
                 return Session(1, "Input file is not readable: $inputPath")
             }
             val outputFile = File(outputPath)
-            outputFile.parentFile?.mkdirs()
+            val parent = outputFile.parentFile
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                return Session(1, "Failed to create output directory: ${parent.absolutePath}")
+            }
             inputFile.copyTo(outputFile, overwrite = true)
             Session(0, "FFmpegKit fallback applied: input copied to output")
         } catch (error: Throwable) {

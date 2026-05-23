@@ -5,7 +5,7 @@ Clearit is an Android app that lets you pick a video and produce a clearer HD ve
 ## What it does
 - Selects a source video from storage.
 - Upscales the video to at least 1080p/1920 width (based on orientation).
-- Enhances the selected video output (currently via built-in compatibility processing).
+- Processes the selected video output (currently via built-in compatibility processing).
 - Saves the enhanced output to the app's `enhanced_videos` folder.
 
 ## Build & test
