@@ -18,6 +18,7 @@ class ImageEnhancer {
     companion object {
         private const val CONTRAST_FACTOR = 1.12f
         private const val SHARPEN_CENTER_WEIGHT = 5f
+        private const val JPEG_QUALITY = 95
     }
 
     fun enhance(context: Context, inputUri: Uri): Result<Uri> {
@@ -29,7 +30,7 @@ class ImageEnhancer {
     }
 
     private fun decodeBitmap(context: Context, inputUri: Uri): Bitmap {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val source = ImageDecoder.createSource(context.contentResolver, inputUri)
             ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
                 decoder.isMutableRequired = true
@@ -41,7 +42,8 @@ class ImageEnhancer {
                 }
                 BitmapFactory.decodeStream(stream, null, options)
             }
-        } ?: throw IllegalArgumentException("Unable to decode selected image")
+        }
+        return bitmap ?: throw IllegalArgumentException("Unable to decode selected image bitmap from URI")
     }
 
     private fun sharpenAndBoostContrast(source: Bitmap): Bitmap {
@@ -111,7 +113,7 @@ class ImageEnhancer {
 
         try {
             context.contentResolver.openOutputStream(uri)?.use { stream ->
-                if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 95, stream)) {
+                if (!bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, stream)) {
                     throw IllegalStateException("Unable to compress enhanced image")
                 }
             } ?: throw IllegalStateException("Unable to write enhanced image")
