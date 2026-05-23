@@ -67,7 +67,7 @@ class VideoEnhancer {
                 }
             } ?: throw IllegalStateException("Unable to write output video")
         } catch (error: Exception) {
-            context.contentResolver.delete(uri, null, null)
+            deleteUri(context, uri)
             throw error
         } finally {
             outputFile.delete()
@@ -81,5 +81,14 @@ class VideoEnhancer {
         }
 
         return uri
+    }
+
+    @Suppress("DEPRECATION")
+    private fun deleteUri(context: Context, uri: Uri) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            context.contentResolver.delete(uri, null)
+        } else {
+            context.contentResolver.delete(uri, null, null)
+        }
     }
 }

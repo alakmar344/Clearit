@@ -15,6 +15,11 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 class ImageEnhancer {
+    companion object {
+        private const val CONTRAST_FACTOR = 1.12f
+        private const val SHARPEN_CENTER_WEIGHT = 5f
+    }
+
     fun enhance(context: Context, inputUri: Uri): Result<Uri> {
         return runCatching {
             val sourceBitmap = decodeBitmap(context, inputUri)
@@ -32,7 +37,7 @@ class ImageEnhancer {
         } else {
             context.contentResolver.openInputStream(inputUri)?.use { stream ->
                 BitmapFactory.decodeStream(stream)
-            } ?: null
+            }
         } ?: throw IllegalArgumentException("Unable to decode selected image")
     }
 
@@ -48,8 +53,7 @@ class ImageEnhancer {
         fun green(pixel: Int): Int = pixel shr 8 and 0xFF
         fun blue(pixel: Int): Int = pixel and 0xFF
 
-        val contrast = 1.12f
-        fun applyContrast(channel: Int): Int = clamp((channel - 128f) * contrast + 128f)
+        fun applyContrast(channel: Int): Int = clamp((channel - 128f) * CONTRAST_FACTOR + 128f)
 
         for (y in 0 until height) {
             for (x in 0 until width) {
@@ -65,11 +69,25 @@ class ImageEnhancer {
                 val top = sourcePixels[index - width]
                 val bottom = sourcePixels[index + width]
 
-                val enhancedRed = applyContrast(clamp((5f * red(center)) - red(left) - red(right) - red(top) - red(bottom)))
+                val enhancedRed = applyContrast(
+                    clamp((SHARPEN_CENTER_WEIGHT * red(center)) - red(left) - red(right) - red(top) - red(bottom))
+                )
                 val enhancedGreen =
-                    applyContrast(clamp((5f * green(center)) - green(left) - green(right) - green(top) - green(bottom)))
+                    applyContrast(
+                        clamp(
+                            (SHARPEN_CENTER_WEIGHT * green(center)) - green(left) - green(right) - green(top) - green(
+                                bottom
+                            )
+                        )
+                    )
                 val enhancedBlue =
-                    applyContrast(clamp((5f * blue(center)) - blue(left) - blue(right) - blue(top) - blue(bottom)))
+                    applyContrast(
+                        clamp(
+                            (SHARPEN_CENTER_WEIGHT * blue(center)) - blue(left) - blue(right) - blue(top) - blue(
+                                bottom
+                            )
+                        )
+                    )
 
                 val alpha = center ushr 24 and 0xFF
                 resultPixels[index] = (alpha shl 24) or (enhancedRed shl 16) or (enhancedGreen shl 8) or enhancedBlue
@@ -102,7 +120,7 @@ class ImageEnhancer {
                 }
             } ?: throw IllegalStateException("Unable to write enhanced image")
         } catch (error: Exception) {
-            context.contentResolver.delete(uri, null, null)
+            deleteUri(context, uri)
             throw error
         }
 
@@ -114,5 +132,14 @@ class ImageEnhancer {
         }
 
         return uri
+    }
+
+    @Suppress("DEPRECATION")
+    private fun deleteUri(context: Context, uri: Uri) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            context.contentResolver.delete(uri, null)
+        } else {
+            context.contentResolver.delete(uri, null, null)
+        }
     }
 }
