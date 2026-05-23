@@ -36,7 +36,10 @@ class ImageEnhancer {
             }
         } else {
             context.contentResolver.openInputStream(inputUri)?.use { stream ->
-                BitmapFactory.decodeStream(stream)
+                val options = BitmapFactory.Options().apply {
+                    inMutable = true
+                }
+                BitmapFactory.decodeStream(stream, null, options)
             }
         } ?: throw IllegalArgumentException("Unable to decode selected image")
     }
@@ -75,17 +78,13 @@ class ImageEnhancer {
                 val enhancedGreen =
                     applyContrast(
                         clamp(
-                            (SHARPEN_CENTER_WEIGHT * green(center)) - green(left) - green(right) - green(top) - green(
-                                bottom
-                            )
+                            (SHARPEN_CENTER_WEIGHT * green(center)) - green(left) - green(right) - green(top) - green(bottom)
                         )
                     )
                 val enhancedBlue =
                     applyContrast(
                         clamp(
-                            (SHARPEN_CENTER_WEIGHT * blue(center)) - blue(left) - blue(right) - blue(top) - blue(
-                                bottom
-                            )
+                            (SHARPEN_CENTER_WEIGHT * blue(center)) - blue(left) - blue(right) - blue(top) - blue(bottom)
                         )
                     )
 
