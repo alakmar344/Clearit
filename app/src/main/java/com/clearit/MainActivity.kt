@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requiresLegacyWritePermission(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+    private fun requiresLegacyWritePermission(): Boolean = Build.VERSION.SDK_INT <= Build.VERSION_CODES.P
 
     private fun hasLegacyWritePermission(): Boolean {
         return ContextCompat.checkSelfPermission(

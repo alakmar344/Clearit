@@ -58,7 +58,7 @@ class VideoEnhancer {
         }
 
         val uri = context.contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
-            ?: throw IllegalStateException("Unable to create output in gallery")
+            ?: throw IllegalStateException("Failed to insert video into MediaStore gallery")
 
         try {
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->

@@ -43,7 +43,7 @@ class ImageEnhancer {
                 BitmapFactory.decodeStream(stream, null, options)
             }
         }
-        return bitmap ?: throw IllegalArgumentException("Unable to decode selected image bitmap from URI")
+        return bitmap ?: throw IllegalArgumentException("Unable to decode image from URI")
     }
 
     private fun sharpenAndBoostContrast(source: Bitmap): Bitmap {
@@ -109,7 +109,7 @@ class ImageEnhancer {
         }
 
         val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            ?: throw IllegalStateException("Unable to create output image in album")
+            ?: throw IllegalStateException("Failed to insert image into MediaStore gallery")
 
         try {
             context.contentResolver.openOutputStream(uri)?.use { stream ->
