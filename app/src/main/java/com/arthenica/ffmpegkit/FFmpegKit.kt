@@ -18,7 +18,10 @@ object FFmpegKit {
         }
 
         val inputPath = arguments[inputIndex + 1]
-        val outputPath = arguments.lastOrNull { token -> !token.startsWith("-") }
+        val outputPath = arguments
+            .asList()
+            .asReversed()
+            .firstOrNull { token -> !token.startsWith("-") && token != inputPath }
             ?: return Session(1, "Missing output argument")
 
         return try {
@@ -40,7 +43,7 @@ object FFmpegKit {
             val overwritten = outputFile.exists()
             inputFile.copyTo(outputFile, overwrite = true)
             Session(0, if (overwritten) "File copied successfully (existing file overwritten)" else "File copied successfully")
-        } catch (error: Throwable) {
+        } catch (error: Exception) {
             Session(
                 1,
                 "File processing failed: ${error::class.simpleName}: ${error.message ?: "no details"}"

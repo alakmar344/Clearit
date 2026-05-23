@@ -19,4 +19,4 @@ Clearit is an Android app that lets you pick a video and produce a clearer HD ve
 - Download the `clearit-debug-apk` artifact to get `app-debug.apk`.
 
 ## Processing backend note
-The upstream FFmpeg Kit Android artifacts used by older builds are no longer reliably resolvable from public Maven repositories. This project now includes a local compatibility backend that copies the selected input video to the output path. This keeps CI builds stable until a full processing backend is reintroduced.
+The upstream FFmpeg Kit Android artifacts used by older builds are no longer reliably resolvable from public Maven repositories. This project now includes a temporary local stub backend that copies the selected input video to the output path. This keeps CI builds stable until a full video-processing backend is reintroduced.
