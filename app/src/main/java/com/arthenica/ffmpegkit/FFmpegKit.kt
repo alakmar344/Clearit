@@ -5,6 +5,12 @@ import java.io.File
 data class Session(val returnCode: Int, val allLogsAsString: String)
 
 object FFmpegKit {
+    /**
+     * Executes a compatibility fallback for FFmpeg-style arguments.
+     *
+     * Expected format includes an input path after `-i` and an output path as the final non-flag token.
+     * Returns a [Session] with `returnCode` 0 on successful file copy and non-zero on validation/copy errors.
+     */
     fun executeWithArguments(arguments: Array<String>): Session {
         val inputIndex = arguments.indexOf("-i")
         if (inputIndex == -1 || inputIndex + 1 >= arguments.size) {
@@ -12,9 +18,12 @@ object FFmpegKit {
         }
 
         val inputPath = arguments[inputIndex + 1]
-        val outputPath = arguments.lastOrNull()
+        val outputPath = arguments
+            .asList()
+            .asReversed()
+            .firstOrNull { token -> token != inputPath && !token.startsWith("-") }
             ?: return Session(1, "Missing output argument")
-        if (outputPath == inputPath || outputPath.startsWith("-")) {
+        if (outputPath == inputPath) {
             return Session(1, "Invalid output argument")
         }
 
@@ -31,8 +40,12 @@ object FFmpegKit {
             if (parent != null && !parent.exists() && !parent.mkdirs()) {
                 return Session(1, "Failed to create output directory: ${parent.absolutePath}")
             }
+            val overwritten = outputFile.exists()
             inputFile.copyTo(outputFile, overwrite = true)
-            Session(0, "File copied successfully (video processing backend unavailable)")
+            Session(
+                0,
+                "File copied successfully (video processing backend unavailable, overwrite=$overwritten)"
+            )
         } catch (error: Throwable) {
             Session(
                 1,
