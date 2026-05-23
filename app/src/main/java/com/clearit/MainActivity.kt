@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun enhanceMedia(uri: Uri, type: MediaType) {
         val statusView = findViewById<TextView>(R.id.statusLabel)
-        statusView.text = getString(R.string.processing, type.name.lowercase())
+        statusView.text = getString(R.string.processing, getMediaTypeLabel(type))
 
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -113,6 +113,14 @@ class MainActivity : AppCompatActivity() {
             }.onFailure { error ->
                 statusView.text = getString(R.string.processing_failed, error.localizedMessage)
             }
+        }
+
+        private fun getMediaTypeLabel(type: MediaType): String {
+            val labelRes = when (type) {
+                MediaType.IMAGE -> R.string.media_type_image
+                MediaType.VIDEO -> R.string.media_type_video
+            }
+            return getString(labelRes)
         }
     }
 }

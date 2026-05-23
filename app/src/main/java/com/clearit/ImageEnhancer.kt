@@ -51,13 +51,6 @@ class ImageEnhancer {
         val resultPixels = IntArray(width * height)
         source.getPixels(sourcePixels, 0, width, 0, 0, width, height)
 
-        fun clamp(value: Float): Int = value.roundToInt().coerceIn(0, 255)
-        fun red(pixel: Int): Int = pixel shr 16 and 0xFF
-        fun green(pixel: Int): Int = pixel shr 8 and 0xFF
-        fun blue(pixel: Int): Int = pixel and 0xFF
-
-        fun applyContrast(channel: Int): Int = clamp((channel - 128f) * CONTRAST_FACTOR + 128f)
-
         for (y in 0 until height) {
             for (x in 0 until width) {
                 val index = y * width + x
@@ -72,21 +65,9 @@ class ImageEnhancer {
                 val top = sourcePixels[index - width]
                 val bottom = sourcePixels[index + width]
 
-                val enhancedRed = applyContrast(
-                    clamp((SHARPEN_CENTER_WEIGHT * red(center)) - red(left) - red(right) - red(top) - red(bottom))
-                )
-                val enhancedGreen =
-                    applyContrast(
-                        clamp(
-                            (SHARPEN_CENTER_WEIGHT * green(center)) - green(left) - green(right) - green(top) - green(bottom)
-                        )
-                    )
-                val enhancedBlue =
-                    applyContrast(
-                        clamp(
-                            (SHARPEN_CENTER_WEIGHT * blue(center)) - blue(left) - blue(right) - blue(top) - blue(bottom)
-                        )
-                    )
+                val enhancedRed = sharpenChannel(center, left, right, top, bottom, 16)
+                val enhancedGreen = sharpenChannel(center, left, right, top, bottom, 8)
+                val enhancedBlue = sharpenChannel(center, left, right, top, bottom, 0)
 
                 val alpha = center ushr 24 and 0xFF
                 resultPixels[index] = (alpha shl 24) or (enhancedRed shl 16) or (enhancedGreen shl 8) or enhancedBlue
@@ -95,6 +76,22 @@ class ImageEnhancer {
 
         return Bitmap.createBitmap(resultPixels, width, height, Bitmap.Config.ARGB_8888)
     }
+
+    private fun sharpenChannel(center: Int, left: Int, right: Int, top: Int, bottom: Int, shift: Int): Int {
+        val sharpened =
+            (SHARPEN_CENTER_WEIGHT * channel(center, shift)) -
+                channel(left, shift) -
+                channel(right, shift) -
+                channel(top, shift) -
+                channel(bottom, shift)
+        return applyContrast(clamp(sharpened))
+    }
+
+    private fun channel(pixel: Int, shift: Int): Int = pixel shr shift and 0xFF
+
+    private fun applyContrast(channel: Int): Int = clamp((channel - 128f) * CONTRAST_FACTOR + 128f)
+
+    private fun clamp(value: Float): Int = value.roundToInt().coerceIn(0, 255)
 
     private fun saveToAlbum(context: Context, bitmap: Bitmap): Uri {
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
