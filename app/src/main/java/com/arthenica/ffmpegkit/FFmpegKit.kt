@@ -12,17 +12,31 @@ object FFmpegKit {
         }
 
         val inputPath = arguments[inputIndex + 1]
-        val outputPath = arguments.lastOrNull()
+        val outputPath = arguments
+            .asList()
+            .asReversed()
+            .firstOrNull { token ->
+                token != inputPath && !token.startsWith("-")
+            }
             ?: return Session(1, "Missing output argument")
 
         return try {
             val inputFile = File(inputPath)
+            if (!inputFile.exists()) {
+                return Session(1, "Input file does not exist: $inputPath")
+            }
+            if (!inputFile.canRead()) {
+                return Session(1, "Input file is not readable: $inputPath")
+            }
             val outputFile = File(outputPath)
             outputFile.parentFile?.mkdirs()
             inputFile.copyTo(outputFile, overwrite = true)
             Session(0, "FFmpegKit fallback applied: input copied to output")
         } catch (error: Throwable) {
-            Session(1, error.message ?: "Unknown processing error")
+            Session(
+                1,
+                "File processing failed: ${error::class.java.simpleName}: ${error.message ?: "no details"}"
+            )
         }
     }
 }
