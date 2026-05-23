@@ -21,11 +21,8 @@ object FFmpegKit {
         val outputPath = arguments
             .asList()
             .asReversed()
-            .firstOrNull { token -> token != inputPath && !token.startsWith("-") }
+            .firstOrNull { token -> !token.startsWith("-") }
             ?: return Session(1, "Missing output argument")
-        if (outputPath == inputPath) {
-            return Session(1, "Invalid output argument")
-        }
 
         return try {
             val inputFile = File(inputPath)
@@ -40,12 +37,12 @@ object FFmpegKit {
             if (parent != null && !parent.exists() && !parent.mkdirs()) {
                 return Session(1, "Failed to create output directory: ${parent.absolutePath}")
             }
+            if (inputFile.canonicalFile == outputFile.canonicalFile) {
+                return Session(1, "Input and output paths point to the same file")
+            }
             val overwritten = outputFile.exists()
             inputFile.copyTo(outputFile, overwrite = true)
-            Session(
-                0,
-                "File copied successfully (video processing backend unavailable, overwrite=$overwritten)"
-            )
+            Session(0, if (overwritten) "File copied successfully (existing file overwritten)" else "File copied successfully")
         } catch (error: Throwable) {
             Session(
                 1,
