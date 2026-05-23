@@ -16,7 +16,9 @@ import kotlin.math.roundToInt
 
 class ImageEnhancer {
     companion object {
+        // Mild global contrast boost after sharpening to improve perceived detail without heavy clipping.
         private const val CONTRAST_FACTOR = 1.12f
+        // 5-center Laplacian sharpen kernel weight: [0,-1,0; -1,5,-1; 0,-1,0].
         private const val SHARPEN_CENTER_WEIGHT = 5f
         private const val JPEG_QUALITY = 95
     }
@@ -57,6 +59,7 @@ class ImageEnhancer {
             for (x in 0 until width) {
                 val index = y * width + x
                 if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
+                    // Keep edges unchanged because the 3x3 kernel requires neighbors on all sides.
                     resultPixels[index] = sourcePixels[index]
                     continue
                 }
