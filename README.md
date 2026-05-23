@@ -13,3 +13,8 @@ Clearit is an Android app that lets you pick a video and produce a clearer HD ve
 ./gradlew test
 ./gradlew assembleDebug
 ```
+
+## Build APK with GitHub Actions
+- Open the **Actions** tab in GitHub.
+- Run the **Build Android APK** workflow (or push/open a PR).
+- Download the `clearit-debug-apk` artifact to get `app-debug.apk`.
