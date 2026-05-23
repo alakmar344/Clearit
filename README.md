@@ -21,3 +21,20 @@ Clearit is an Android app that lets you pick a video and produce a clearer HD ve
 ## Processing backend note
 The upstream FFmpeg Kit Android artifacts used by older builds are no longer reliably resolvable from public Maven repositories. This project now includes a temporary local stub backend that copies the selected input video to the output path. This keeps CI builds stable until a full video-processing backend is reintroduced.
 Video enhancement features (such as upscaling and sharpening) are currently disabled in this fallback mode.
+
+## Alternative base approach (Python RealESRGAN)
+```python
+from realesrgan import RealESRGAN
+from PIL import Image
+import torch
+
+device = torch.device('cuda')
+
+model = RealESRGAN(device, scale=4)
+model.load_weights('RealESRGAN_x4.pth')
+
+image = Image.open("frame.png")
+sr = model.predict(image)
+
+sr.save("enhanced.png")
+```
