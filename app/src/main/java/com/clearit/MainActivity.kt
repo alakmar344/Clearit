@@ -104,8 +104,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            result.onSuccess { outputUri ->
-                statusView.text = getString(R.string.output_ready, outputUri.toString())
+            result.onSuccess {
+                val albumName = when (type) {
+                    MediaType.IMAGE -> getString(R.string.album_images)
+                    MediaType.VIDEO -> getString(R.string.album_videos)
+                }
+                statusView.text = getString(R.string.output_ready, albumName)
             }.onFailure { error ->
                 statusView.text = getString(R.string.processing_failed, error.localizedMessage)
             }

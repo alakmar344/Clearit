@@ -10,6 +10,8 @@
     <string name="select_media_prompt">Please select an image or video first.</string>
     <string name="unsupported_media">Unsupported media type selected.</string>
     <string name="storage_permission_required">Storage permission is required to save output to gallery on this Android version.</string>
+    <string name="album_images">Pictures/Clearit</string>
+    <string name="album_videos">Movies/Clearit</string>
     <string name="processing">Enhancing %1$s. Please wait...</string>
     <string name="status_idle">Status: idle</string>
     <string name="output_ready">Done. Saved to album: %1$s</string>

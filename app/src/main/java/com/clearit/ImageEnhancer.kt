@@ -37,12 +37,11 @@ class ImageEnhancer {
     }
 
     private fun sharpenAndBoostContrast(source: Bitmap): Bitmap {
-        val src = source.copy(Bitmap.Config.ARGB_8888, false)
-        val width = src.width
-        val height = src.height
+        val width = source.width
+        val height = source.height
         val sourcePixels = IntArray(width * height)
         val resultPixels = IntArray(width * height)
-        src.getPixels(sourcePixels, 0, width, 0, 0, width, height)
+        source.getPixels(sourcePixels, 0, width, 0, 0, width, height)
 
         fun clamp(value: Float): Int = value.roundToInt().coerceIn(0, 255)
         fun red(pixel: Int): Int = pixel shr 16 and 0xFF
