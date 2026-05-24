@@ -3,16 +3,20 @@ package com.clearit
 import kotlin.math.pow
 
 object EnhancementPreset {
-    const val CONTRAST = 2
-    const val HIGHLIGHTS = -20
-    const val SHADOWS = 22
-    const val BLACKS = -38
-    const val EXPOSURE = -0.9f
-    const val WHITES = -38
-    const val TEMPERATURE = -81
-    const val TINT = 1
-    const val VIBRANCE = 42
-    const val SATURATION = 24
+    const val CONTRAST = 8
+    const val HIGHLIGHTS = -28
+    const val SHADOWS = 18
+    const val BLACKS = -12
+    const val EXPOSURE = -0.2f
+    const val WHITES = -10
+    const val TEMPERATURE = -8
+    const val TINT = 2
+    const val VIBRANCE = 18
+    const val SATURATION = 6
+    const val CLARITY = 8
+    const val TEXTURE = 5
+    const val SHARPENING = 12
+    const val NOISE_REDUCTION = 10
 
     fun contrastFactor(): Float = 1f + CONTRAST / 100f
 
@@ -33,6 +37,14 @@ object EnhancementPreset {
     fun temperatureShift(): Float = TEMPERATURE / 100f
 
     fun tintShift(): Float = TINT / 100f
+
+    fun clarityAmount(): Float = CLARITY / 100f
+
+    fun textureAmount(): Float = TEXTURE / 100f
+
+    fun sharpeningAmount(): Float = SHARPENING / 100f
+
+    fun noiseReductionAmount(): Float = NOISE_REDUCTION / 100f
 
     // FFmpeg eq brightness is offset-based (-1..1), so convert multiplicative exposure to an offset.
     fun videoBrightness(): Float = exposureFactor() - 1f
