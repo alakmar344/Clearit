@@ -4,7 +4,7 @@ Clearit is an Android app that lets you pick an image or video and produce a cle
 
 ## What it does
 - Selects a source image or video from storage.
-- Enhances image sharpness and contrast using on-device bitmap processing.
+- Enhances images with the app preset (contrast/highlights/shadows/blacks/exposure/whites/temp/tint/vibrance/saturation) using on-device bitmap processing.
 - Processes selected video output through the app's video enhancement pipeline.
 - Saves enhanced images and videos to gallery albums (`Pictures/Clearit` and `Movies/Clearit`).
 

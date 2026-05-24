@@ -1,8 +1,27 @@
 package com.clearit
 
 object EnhancementCommandBuilder {
-    internal const val VIDEO_FILTER =
-        "scale='if(gte(iw,ih),max(iw,3840),-2)':'if(gte(iw,ih),-2,max(ih,2160))':flags=lanczos,eq=contrast=1.08:saturation=1.06:brightness=0.01,unsharp=7:7:1.4:7:7:0.8"
+    private const val BASE_SCALE_FILTER =
+        "scale='if(gte(iw,ih),max(iw,3840),-2)':'if(gte(iw,ih),-2,max(ih,2160))':flags=lanczos"
+
+    internal val VIDEO_FILTER = buildString {
+        append(BASE_SCALE_FILTER)
+        append(",eq=contrast=")
+        append(EnhancementPreset.contrastFactor())
+        append(":saturation=")
+        append(EnhancementPreset.saturationFactor())
+        append(":brightness=")
+        append(EnhancementPreset.videoBrightness())
+        append(",vibrance=intensity=")
+        append(EnhancementPreset.vibranceAmount())
+        append(",colorbalance=rs=")
+        append(EnhancementPreset.temperatureShift() * 0.1f)
+        append(":bs=")
+        append(-EnhancementPreset.temperatureShift() * 0.1f)
+        append(":gm=")
+        append(EnhancementPreset.tintShift() * 0.01f)
+        append(",curves=all='0/0:0.1/0.024:0.25/0.305:0.75/0.70:1/0.62'")
+    }
 
     fun build(inputPath: String, outputPath: String): List<String> =
         listOf(
