@@ -71,9 +71,9 @@ class ImageEnhancer {
             green *= exposureFactor
             blue *= exposureFactor
 
-            val lumaBeforeTones = luma(red, green, blue).coerceIn(0f, 1f)
-            val shadowWeight = (1f - lumaBeforeTones) * (1f - lumaBeforeTones)
-            val highlightWeight = lumaBeforeTones * lumaBeforeTones
+            val lumaForToneWeights = luma(red, green, blue).coerceIn(0f, 1f)
+            val shadowWeight = square(1f - lumaForToneWeights)
+            val highlightWeight = square(lumaForToneWeights)
             red += EnhancementPreset.shadowsAmount() * shadowWeight
             green += EnhancementPreset.shadowsAmount() * shadowWeight
             blue += EnhancementPreset.shadowsAmount() * shadowWeight
@@ -81,8 +81,8 @@ class ImageEnhancer {
             green += EnhancementPreset.highlightsAmount() * highlightWeight
             blue += EnhancementPreset.highlightsAmount() * highlightWeight
 
-            val blackWeight = (1f - lumaBeforeTones) * (1f - lumaBeforeTones) * (1f - lumaBeforeTones)
-            val whiteWeight = lumaBeforeTones * lumaBeforeTones * lumaBeforeTones
+            val blackWeight = cubic(1f - lumaForToneWeights)
+            val whiteWeight = cubic(lumaForToneWeights)
             red += EnhancementPreset.blacksAmount() * blackWeight
             green += EnhancementPreset.blacksAmount() * blackWeight
             blue += EnhancementPreset.blacksAmount() * blackWeight
@@ -120,6 +120,10 @@ class ImageEnhancer {
     private fun channel(pixel: Int, shift: Int): Int = pixel shr shift and 0xFF
 
     private fun luma(red: Float, green: Float, blue: Float): Float = 0.299f * red + 0.587f * green + 0.114f * blue
+
+    private fun square(value: Float): Float = value * value
+
+    private fun cubic(value: Float): Float = value * value * value
 
     private fun applyContrast(channel: Float): Float =
         ((channel - 0.5f) * EnhancementPreset.contrastFactor() + 0.5f).coerceIn(0f, 1f)
