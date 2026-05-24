@@ -34,5 +34,6 @@ object EnhancementPreset {
 
     fun tintShift(): Float = TINT / 100f
 
+    // FFmpeg eq brightness is offset-based (-1..1), so convert multiplicative exposure to an offset.
     fun videoBrightness(): Float = exposureFactor() - 1f
 }

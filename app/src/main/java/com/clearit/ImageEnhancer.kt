@@ -12,13 +12,14 @@ import android.provider.MediaStore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 class ImageEnhancer {
     companion object {
         private const val JPEG_QUALITY = 98
+        private const val TEMPERATURE_CHANNEL_SCALE = 0.1f
+        private const val TINT_RB_SCALE = 0.0025f
+        private const val TINT_G_SCALE = 0.005f
     }
 
     fun enhance(context: Context, inputUri: Uri): Result<Uri> {
@@ -60,11 +61,11 @@ class ImageEnhancer {
             var green = channel(pixel, 8) / 255f
             var blue = channel(pixel, 0) / 255f
 
-            red += EnhancementPreset.temperatureShift() * 0.1f
-            blue -= EnhancementPreset.temperatureShift() * 0.1f
-            red += EnhancementPreset.tintShift() * 0.0025f
-            green -= EnhancementPreset.tintShift() * 0.005f
-            blue += EnhancementPreset.tintShift() * 0.0025f
+            red += EnhancementPreset.temperatureShift() * TEMPERATURE_CHANNEL_SCALE
+            blue -= EnhancementPreset.temperatureShift() * TEMPERATURE_CHANNEL_SCALE
+            red += EnhancementPreset.tintShift() * TINT_RB_SCALE
+            green -= EnhancementPreset.tintShift() * TINT_G_SCALE
+            blue += EnhancementPreset.tintShift() * TINT_RB_SCALE
 
             val exposureFactor = EnhancementPreset.exposureFactor()
             red *= exposureFactor
@@ -99,8 +100,8 @@ class ImageEnhancer {
             green = luma + (green - luma) * EnhancementPreset.saturationFactor()
             blue = luma + (blue - luma) * EnhancementPreset.saturationFactor()
 
-            val maxChannel = max(red, max(green, blue))
-            val minChannel = min(red, min(green, blue))
+            val maxChannel = maxOf(red, green, blue)
+            val minChannel = minOf(red, green, blue)
             val pixelSaturation = (maxChannel - minChannel).coerceIn(0f, 1f)
             val vibranceBoost = EnhancementPreset.vibranceAmount() * (1f - pixelSaturation)
             red = luma + (red - luma) * (1f + vibranceBoost)
