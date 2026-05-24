@@ -20,9 +20,11 @@ object EnhancementCommandBuilder {
             append(",colorbalance=rs=")
             append(EnhancementPreset.temperatureShift() * VIDEO_TEMPERATURE_BALANCE_SCALE)
             append(":bs=")
+            // Cool temperature shift decreases red and increases blue by the mirrored amount.
             append(-EnhancementPreset.temperatureShift() * VIDEO_TEMPERATURE_BALANCE_SCALE)
             append(":gm=")
             append(EnhancementPreset.tintShift() * VIDEO_TINT_BALANCE_SCALE)
+            // Tone curve maps the requested blacks/shadows/highlights/whites adjustments.
             append(",curves=all='0/0:0.1/0.024:0.25/0.305:0.75/0.70:1/0.62'")
         }
     }

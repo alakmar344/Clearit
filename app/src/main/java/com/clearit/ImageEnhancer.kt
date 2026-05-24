@@ -66,11 +66,17 @@ class ImageEnhancer {
             red += EnhancementPreset.tintShift() * TINT_RB_SCALE
             green -= EnhancementPreset.tintShift() * TINT_G_SCALE
             blue += EnhancementPreset.tintShift() * TINT_RB_SCALE
+            red = red.coerceIn(0f, 1f)
+            green = green.coerceIn(0f, 1f)
+            blue = blue.coerceIn(0f, 1f)
 
             val exposureFactor = EnhancementPreset.exposureFactor()
             red *= exposureFactor
             green *= exposureFactor
             blue *= exposureFactor
+            red = red.coerceIn(0f, 1f)
+            green = green.coerceIn(0f, 1f)
+            blue = blue.coerceIn(0f, 1f)
 
             val lumaForToneWeights = luma(red, green, blue).coerceIn(0f, 1f)
             val shadowWeight = square(1f - lumaForToneWeights)
