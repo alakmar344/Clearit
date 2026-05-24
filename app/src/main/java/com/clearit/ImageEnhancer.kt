@@ -18,8 +18,8 @@ class ImageEnhancer {
     companion object {
         // Mild global contrast boost after sharpening to improve perceived detail without heavy clipping.
         private const val CONTRAST_FACTOR = 1.18f
-        // Tuned center weight for a 5-center Laplacian sharpen kernel.
-        private const val SHARPEN_CENTER_WEIGHT = 5.8f
+        // Tuned sharpen intensity for a Laplacian-style center-weighted kernel.
+        private const val SHARPEN_INTENSITY = 5.8f
         private const val SATURATION_FACTOR = 1.08f
         private const val JPEG_QUALITY = 98
     }
@@ -87,7 +87,7 @@ class ImageEnhancer {
 
     private fun sharpenChannel(center: Int, left: Int, right: Int, top: Int, bottom: Int, shift: Int): Int {
         val sharpened =
-            (SHARPEN_CENTER_WEIGHT * channel(center, shift)) -
+            (SHARPEN_INTENSITY * channel(center, shift)) -
                 channel(left, shift) -
                 channel(right, shift) -
                 channel(top, shift) -
