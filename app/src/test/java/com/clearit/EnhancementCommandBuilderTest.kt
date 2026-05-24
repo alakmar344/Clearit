@@ -18,11 +18,12 @@ class EnhancementCommandBuilderTest {
     }
 
     @Test
-    fun `build includes hd upscale and sharpening filter`() {
+    fun `build includes cinema upscale and sharpening filter`() {
         val filter = EnhancementCommandBuilder.build("in", "out")[4]
 
-        assertTrue(filter.contains("max(iw,1920)"))
-        assertTrue(filter.contains("max(ih,1080)"))
-        assertTrue(filter.contains("unsharp=5:5:1.0"))
+        assertTrue(filter.contains("max(iw,3840)"))
+        assertTrue(filter.contains("max(ih,2160)"))
+        assertTrue(filter.contains("eq=contrast=1.08:saturation=1.06:brightness=0.01"))
+        assertTrue(filter.contains("unsharp=7:7:1.4"))
     }
 }

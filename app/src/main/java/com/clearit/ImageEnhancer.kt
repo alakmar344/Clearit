@@ -17,10 +17,11 @@ import kotlin.math.roundToInt
 class ImageEnhancer {
     companion object {
         // Mild global contrast boost after sharpening to improve perceived detail without heavy clipping.
-        private const val CONTRAST_FACTOR = 1.12f
-        // 5-center Laplacian sharpen kernel weight: [0,-1,0; -1,5,-1; 0,-1,0].
-        private const val SHARPEN_CENTER_WEIGHT = 5f
-        private const val JPEG_QUALITY = 95
+        private const val CONTRAST_FACTOR = 1.18f
+        // Tuned sharpen intensity for a Laplacian-style center-weighted kernel.
+        private const val SHARPEN_INTENSITY = 5.8f
+        private const val SATURATION_FACTOR = 1.08f
+        private const val JPEG_QUALITY = 98
     }
 
     fun enhance(context: Context, inputUri: Uri): Result<Uri> {
@@ -73,9 +74,11 @@ class ImageEnhancer {
                 val enhancedRed = sharpenChannel(center, left, right, top, bottom, 16)
                 val enhancedGreen = sharpenChannel(center, left, right, top, bottom, 8)
                 val enhancedBlue = sharpenChannel(center, left, right, top, bottom, 0)
+                val boostedRgb = boostSaturationPackedRgb(enhancedRed, enhancedGreen, enhancedBlue)
 
                 val alpha = center ushr 24 and 0xFF
-                resultPixels[index] = (alpha shl 24) or (enhancedRed shl 16) or (enhancedGreen shl 8) or enhancedBlue
+                resultPixels[index] =
+                    (alpha shl 24) or boostedRgb
             }
         }
 
@@ -84,7 +87,7 @@ class ImageEnhancer {
 
     private fun sharpenChannel(center: Int, left: Int, right: Int, top: Int, bottom: Int, shift: Int): Int {
         val sharpened =
-            (SHARPEN_CENTER_WEIGHT * channel(center, shift)) -
+            (SHARPEN_INTENSITY * channel(center, shift)) -
                 channel(left, shift) -
                 channel(right, shift) -
                 channel(top, shift) -
@@ -93,6 +96,14 @@ class ImageEnhancer {
     }
 
     private fun channel(pixel: Int, shift: Int): Int = pixel shr shift and 0xFF
+
+    private fun boostSaturationPackedRgb(red: Int, green: Int, blue: Int): Int {
+        val luma = 0.299f * red + 0.587f * green + 0.114f * blue
+        val boostedRed = clamp((red - luma) * SATURATION_FACTOR + luma)
+        val boostedGreen = clamp((green - luma) * SATURATION_FACTOR + luma)
+        val boostedBlue = clamp((blue - luma) * SATURATION_FACTOR + luma)
+        return (boostedRed shl 16) or (boostedGreen shl 8) or boostedBlue
+    }
 
     private fun applyContrast(channel: Int): Int = clamp((channel - 128f) * CONTRAST_FACTOR + 128f)
 
