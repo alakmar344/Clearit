@@ -53,6 +53,15 @@ class ImageEnhancer {
         val sourcePixels = IntArray(width * height)
         val resultPixels = IntArray(width * height)
         source.getPixels(sourcePixels, 0, width, 0, 0, width, height)
+        val temperatureShift = EnhancementPreset.temperatureShift()
+        val tintShift = EnhancementPreset.tintShift()
+        val exposureFactor = EnhancementPreset.exposureFactor()
+        val shadowsAmount = EnhancementPreset.shadowsAmount()
+        val highlightsAmount = EnhancementPreset.highlightsAmount()
+        val blacksAmount = EnhancementPreset.blacksAmount()
+        val whitesAmount = EnhancementPreset.whitesAmount()
+        val saturationFactor = EnhancementPreset.saturationFactor()
+        val vibranceAmount = EnhancementPreset.vibranceAmount()
 
         for (index in sourcePixels.indices) {
             val pixel = sourcePixels[index]
@@ -61,16 +70,15 @@ class ImageEnhancer {
             var green = channel(pixel, 8) / 255f
             var blue = channel(pixel, 0) / 255f
 
-            red += EnhancementPreset.temperatureShift() * TEMPERATURE_CHANNEL_SCALE
-            blue -= EnhancementPreset.temperatureShift() * TEMPERATURE_CHANNEL_SCALE
-            red += EnhancementPreset.tintShift() * TINT_RB_SCALE
-            green -= EnhancementPreset.tintShift() * TINT_G_SCALE
-            blue += EnhancementPreset.tintShift() * TINT_RB_SCALE
+            red += temperatureShift * TEMPERATURE_CHANNEL_SCALE
+            blue -= temperatureShift * TEMPERATURE_CHANNEL_SCALE
+            red += tintShift * TINT_RB_SCALE
+            green -= tintShift * TINT_G_SCALE
+            blue += tintShift * TINT_RB_SCALE
             red = red.coerceIn(0f, 1f)
             green = green.coerceIn(0f, 1f)
             blue = blue.coerceIn(0f, 1f)
 
-            val exposureFactor = EnhancementPreset.exposureFactor()
             red *= exposureFactor
             green *= exposureFactor
             blue *= exposureFactor
@@ -81,35 +89,35 @@ class ImageEnhancer {
             val lumaForToneWeights = luma(red, green, blue).coerceIn(0f, 1f)
             val shadowWeight = square(1f - lumaForToneWeights)
             val highlightWeight = square(lumaForToneWeights)
-            red += EnhancementPreset.shadowsAmount() * shadowWeight
-            green += EnhancementPreset.shadowsAmount() * shadowWeight
-            blue += EnhancementPreset.shadowsAmount() * shadowWeight
-            red += EnhancementPreset.highlightsAmount() * highlightWeight
-            green += EnhancementPreset.highlightsAmount() * highlightWeight
-            blue += EnhancementPreset.highlightsAmount() * highlightWeight
+            red += shadowsAmount * shadowWeight
+            green += shadowsAmount * shadowWeight
+            blue += shadowsAmount * shadowWeight
+            red += highlightsAmount * highlightWeight
+            green += highlightsAmount * highlightWeight
+            blue += highlightsAmount * highlightWeight
 
             val blackWeight = cubic(1f - lumaForToneWeights)
             val whiteWeight = cubic(lumaForToneWeights)
-            red += EnhancementPreset.blacksAmount() * blackWeight
-            green += EnhancementPreset.blacksAmount() * blackWeight
-            blue += EnhancementPreset.blacksAmount() * blackWeight
-            red += EnhancementPreset.whitesAmount() * whiteWeight
-            green += EnhancementPreset.whitesAmount() * whiteWeight
-            blue += EnhancementPreset.whitesAmount() * whiteWeight
+            red += blacksAmount * blackWeight
+            green += blacksAmount * blackWeight
+            blue += blacksAmount * blackWeight
+            red += whitesAmount * whiteWeight
+            green += whitesAmount * whiteWeight
+            blue += whitesAmount * whiteWeight
 
             red = applyContrast(red)
             green = applyContrast(green)
             blue = applyContrast(blue)
 
             val luma = luma(red, green, blue)
-            red = luma + (red - luma) * EnhancementPreset.saturationFactor()
-            green = luma + (green - luma) * EnhancementPreset.saturationFactor()
-            blue = luma + (blue - luma) * EnhancementPreset.saturationFactor()
+            red = luma + (red - luma) * saturationFactor
+            green = luma + (green - luma) * saturationFactor
+            blue = luma + (blue - luma) * saturationFactor
 
             val maxChannel = maxOf(red, green, blue)
             val minChannel = minOf(red, green, blue)
             val pixelSaturation = (maxChannel - minChannel).coerceIn(0f, 1f)
-            val vibranceBoost = EnhancementPreset.vibranceAmount() * (1f - pixelSaturation)
+            val vibranceBoost = vibranceAmount * (1f - pixelSaturation)
             red = luma + (red - luma) * (1f + vibranceBoost)
             green = luma + (green - luma) * (1f + vibranceBoost)
             blue = luma + (blue - luma) * (1f + vibranceBoost)
