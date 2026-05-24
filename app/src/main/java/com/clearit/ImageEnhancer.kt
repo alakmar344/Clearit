@@ -12,6 +12,7 @@ import android.provider.MediaStore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class ImageEnhancer {
@@ -20,6 +21,10 @@ class ImageEnhancer {
         private const val TEMPERATURE_CHANNEL_SCALE = 0.1f
         private const val TINT_RB_SCALE = 0.0025f
         private const val TINT_G_SCALE = 0.005f
+        private const val CLARITY_STRENGTH_SCALE = 0.6f
+        private const val TEXTURE_STRENGTH_SCALE = 0.45f
+        private const val SHARPENING_STRENGTH_SCALE = 0.8f
+        private const val NOISE_REDUCTION_SCALE = 0.25f
     }
 
     fun enhance(context: Context, inputUri: Uri): Result<Uri> {
@@ -129,7 +134,8 @@ class ImageEnhancer {
             resultPixels[index] = (alpha shl 24) or packed
         }
 
-        return Bitmap.createBitmap(resultPixels, width, height, Bitmap.Config.ARGB_8888)
+        val detailedPixels = applyDetailAdjustments(resultPixels, width, height)
+        return Bitmap.createBitmap(detailedPixels, width, height, Bitmap.Config.ARGB_8888)
     }
 
     private fun channel(pixel: Int, shift: Int): Int = pixel shr shift and 0xFF
@@ -144,6 +150,84 @@ class ImageEnhancer {
         ((channel - 0.5f) * EnhancementPreset.contrastFactor() + 0.5f).coerceIn(0f, 1f)
 
     private fun clamp(value: Float): Int = value.roundToInt().coerceIn(0, 255)
+
+    private fun applyDetailAdjustments(pixels: IntArray, width: Int, height: Int): IntArray {
+        val noiseReduction = EnhancementPreset.noiseReductionAmount().coerceIn(-1f, 1f)
+        val clarity = EnhancementPreset.clarityAmount().coerceIn(-1f, 1f)
+        val texture = EnhancementPreset.textureAmount().coerceIn(-1f, 1f)
+        val sharpening = EnhancementPreset.sharpeningAmount().coerceIn(-1f, 1f)
+        if (noiseReduction == 0f && clarity == 0f && texture == 0f && sharpening == 0f) {
+            return pixels
+        }
+
+        val result = IntArray(pixels.size)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val index = y * width + x
+                val center = pixels[index]
+                val alpha = center ushr 24 and 0xFF
+                val neighbors = neighboringAverage(pixels, width, height, x, y)
+
+                val centerRed = channel(center, 16) / 255f
+                val centerGreen = channel(center, 8) / 255f
+                val centerBlue = channel(center, 0) / 255f
+                val blurRed = neighbors.first
+                val blurGreen = neighbors.second
+                val blurBlue = neighbors.third
+
+                val denoiseWeight = noiseReduction * NOISE_REDUCTION_SCALE
+                val denoisedRed = centerRed + (blurRed - centerRed) * denoiseWeight
+                val denoisedGreen = centerGreen + (blurGreen - centerGreen) * denoiseWeight
+                val denoisedBlue = centerBlue + (blurBlue - centerBlue) * denoiseWeight
+
+                val luma = luma(denoisedRed, denoisedGreen, denoisedBlue).coerceIn(0f, 1f)
+                val clarityMask = (1f - abs(2f * luma - 1f)).coerceIn(0f, 1f)
+                val detailStrength =
+                    clarity * CLARITY_STRENGTH_SCALE * clarityMask +
+                        texture * TEXTURE_STRENGTH_SCALE +
+                        sharpening * SHARPENING_STRENGTH_SCALE
+
+                val outRed = (denoisedRed + (denoisedRed - blurRed) * detailStrength).coerceIn(0f, 1f)
+                val outGreen = (denoisedGreen + (denoisedGreen - blurGreen) * detailStrength).coerceIn(0f, 1f)
+                val outBlue = (denoisedBlue + (denoisedBlue - blurBlue) * detailStrength).coerceIn(0f, 1f)
+
+                val packed =
+                    (clamp(outRed * 255f) shl 16) or
+                        (clamp(outGreen * 255f) shl 8) or
+                        clamp(outBlue * 255f)
+                result[index] = (alpha shl 24) or packed
+            }
+        }
+
+        return result
+    }
+
+    private fun neighboringAverage(
+        pixels: IntArray,
+        width: Int,
+        height: Int,
+        x: Int,
+        y: Int
+    ): Triple<Float, Float, Float> {
+        var red = 0f
+        var green = 0f
+        var blue = 0f
+        var count = 0
+        for (dy in -1..1) {
+            val ny = y + dy
+            if (ny !in 0 until height) continue
+            for (dx in -1..1) {
+                val nx = x + dx
+                if (nx !in 0 until width) continue
+                val pixel = pixels[ny * width + nx]
+                red += channel(pixel, 16) / 255f
+                green += channel(pixel, 8) / 255f
+                blue += channel(pixel, 0) / 255f
+                count++
+            }
+        }
+        return Triple(red / count, green / count, blue / count)
+    }
 
     private fun saveToAlbum(context: Context, bitmap: Bitmap): Uri {
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
