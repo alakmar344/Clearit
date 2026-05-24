@@ -16,18 +16,16 @@ import kotlin.math.roundToInt
 
 class ImageEnhancer {
     companion object {
-        // Mild global contrast boost after sharpening to improve perceived detail without heavy clipping.
-        private const val CONTRAST_FACTOR = 1.18f
-        // Tuned sharpen intensity for a Laplacian-style center-weighted kernel.
-        private const val SHARPEN_INTENSITY = 5.8f
-        private const val SATURATION_FACTOR = 1.08f
         private const val JPEG_QUALITY = 98
+        private const val TEMPERATURE_CHANNEL_SCALE = 0.1f
+        private const val TINT_RB_SCALE = 0.0025f
+        private const val TINT_G_SCALE = 0.005f
     }
 
     fun enhance(context: Context, inputUri: Uri): Result<Uri> {
         return runCatching {
             val sourceBitmap = decodeBitmap(context, inputUri)
-            val enhancedBitmap = sharpenAndBoostContrast(sourceBitmap)
+            val enhancedBitmap = applyPreset(sourceBitmap)
             saveToAlbum(context, enhancedBitmap)
         }
     }
@@ -49,63 +47,101 @@ class ImageEnhancer {
         return bitmap ?: throw IllegalArgumentException("Unable to decode image from URI")
     }
 
-    private fun sharpenAndBoostContrast(source: Bitmap): Bitmap {
+    private fun applyPreset(source: Bitmap): Bitmap {
         val width = source.width
         val height = source.height
         val sourcePixels = IntArray(width * height)
         val resultPixels = IntArray(width * height)
         source.getPixels(sourcePixels, 0, width, 0, 0, width, height)
+        val temperatureShift = EnhancementPreset.temperatureShift()
+        val tintShift = EnhancementPreset.tintShift()
+        val exposureFactor = EnhancementPreset.exposureFactor()
+        val shadowsAmount = EnhancementPreset.shadowsAmount()
+        val highlightsAmount = EnhancementPreset.highlightsAmount()
+        val blacksAmount = EnhancementPreset.blacksAmount()
+        val whitesAmount = EnhancementPreset.whitesAmount()
+        val saturationFactor = EnhancementPreset.saturationFactor()
+        val vibranceAmount = EnhancementPreset.vibranceAmount()
 
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                val index = y * width + x
-                if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
-                    // Keep edges unchanged because the 3x3 kernel requires neighbors on all sides.
-                    resultPixels[index] = sourcePixels[index]
-                    continue
-                }
+        for (index in sourcePixels.indices) {
+            val pixel = sourcePixels[index]
+            val alpha = pixel ushr 24 and 0xFF
+            var red = channel(pixel, 16) / 255f
+            var green = channel(pixel, 8) / 255f
+            var blue = channel(pixel, 0) / 255f
 
-                val center = sourcePixels[index]
-                val left = sourcePixels[index - 1]
-                val right = sourcePixels[index + 1]
-                val top = sourcePixels[index - width]
-                val bottom = sourcePixels[index + width]
+            red += temperatureShift * TEMPERATURE_CHANNEL_SCALE
+            blue -= temperatureShift * TEMPERATURE_CHANNEL_SCALE
+            red += tintShift * TINT_RB_SCALE
+            green -= tintShift * TINT_G_SCALE
+            blue += tintShift * TINT_RB_SCALE
+            red = red.coerceIn(0f, 1f)
+            green = green.coerceIn(0f, 1f)
+            blue = blue.coerceIn(0f, 1f)
 
-                val enhancedRed = sharpenChannel(center, left, right, top, bottom, 16)
-                val enhancedGreen = sharpenChannel(center, left, right, top, bottom, 8)
-                val enhancedBlue = sharpenChannel(center, left, right, top, bottom, 0)
-                val boostedRgb = boostSaturationPackedRgb(enhancedRed, enhancedGreen, enhancedBlue)
+            red *= exposureFactor
+            green *= exposureFactor
+            blue *= exposureFactor
+            red = red.coerceIn(0f, 1f)
+            green = green.coerceIn(0f, 1f)
+            blue = blue.coerceIn(0f, 1f)
 
-                val alpha = center ushr 24 and 0xFF
-                resultPixels[index] =
-                    (alpha shl 24) or boostedRgb
-            }
+            val lumaForToneWeights = luma(red, green, blue).coerceIn(0f, 1f)
+            val shadowWeight = square(1f - lumaForToneWeights)
+            val highlightWeight = square(lumaForToneWeights)
+            red += shadowsAmount * shadowWeight
+            green += shadowsAmount * shadowWeight
+            blue += shadowsAmount * shadowWeight
+            red += highlightsAmount * highlightWeight
+            green += highlightsAmount * highlightWeight
+            blue += highlightsAmount * highlightWeight
+
+            val blackWeight = cubic(1f - lumaForToneWeights)
+            val whiteWeight = cubic(lumaForToneWeights)
+            red += blacksAmount * blackWeight
+            green += blacksAmount * blackWeight
+            blue += blacksAmount * blackWeight
+            red += whitesAmount * whiteWeight
+            green += whitesAmount * whiteWeight
+            blue += whitesAmount * whiteWeight
+
+            red = applyContrast(red)
+            green = applyContrast(green)
+            blue = applyContrast(blue)
+
+            val luma = luma(red, green, blue)
+            red = luma + (red - luma) * saturationFactor
+            green = luma + (green - luma) * saturationFactor
+            blue = luma + (blue - luma) * saturationFactor
+
+            val maxChannel = maxOf(red, green, blue)
+            val minChannel = minOf(red, green, blue)
+            val pixelSaturation = (maxChannel - minChannel).coerceIn(0f, 1f)
+            val vibranceBoost = vibranceAmount * (1f - pixelSaturation)
+            red = luma + (red - luma) * (1f + vibranceBoost)
+            green = luma + (green - luma) * (1f + vibranceBoost)
+            blue = luma + (blue - luma) * (1f + vibranceBoost)
+
+            val packed =
+                (clamp(red * 255f) shl 16) or
+                    (clamp(green * 255f) shl 8) or
+                    clamp(blue * 255f)
+            resultPixels[index] = (alpha shl 24) or packed
         }
 
         return Bitmap.createBitmap(resultPixels, width, height, Bitmap.Config.ARGB_8888)
     }
 
-    private fun sharpenChannel(center: Int, left: Int, right: Int, top: Int, bottom: Int, shift: Int): Int {
-        val sharpened =
-            (SHARPEN_INTENSITY * channel(center, shift)) -
-                channel(left, shift) -
-                channel(right, shift) -
-                channel(top, shift) -
-                channel(bottom, shift)
-        return applyContrast(clamp(sharpened))
-    }
-
     private fun channel(pixel: Int, shift: Int): Int = pixel shr shift and 0xFF
 
-    private fun boostSaturationPackedRgb(red: Int, green: Int, blue: Int): Int {
-        val luma = 0.299f * red + 0.587f * green + 0.114f * blue
-        val boostedRed = clamp((red - luma) * SATURATION_FACTOR + luma)
-        val boostedGreen = clamp((green - luma) * SATURATION_FACTOR + luma)
-        val boostedBlue = clamp((blue - luma) * SATURATION_FACTOR + luma)
-        return (boostedRed shl 16) or (boostedGreen shl 8) or boostedBlue
-    }
+    private fun luma(red: Float, green: Float, blue: Float): Float = 0.299f * red + 0.587f * green + 0.114f * blue
 
-    private fun applyContrast(channel: Int): Int = clamp((channel - 128f) * CONTRAST_FACTOR + 128f)
+    private fun square(value: Float): Float = value * value
+
+    private fun cubic(value: Float): Float = value * value * value
+
+    private fun applyContrast(channel: Float): Float =
+        ((channel - 0.5f) * EnhancementPreset.contrastFactor() + 0.5f).coerceIn(0f, 1f)
 
     private fun clamp(value: Float): Int = value.roundToInt().coerceIn(0, 255)
 
