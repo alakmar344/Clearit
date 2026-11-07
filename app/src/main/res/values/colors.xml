@@ -1,0 +1,5 @@
+<resources>
+    <color name="preview_background">#FF121212</color>
+    <color name="preview_on_background">#FFE0E0E0</color>
+    <color name="brand_primary">#FF4338CA</color>
+</resources>

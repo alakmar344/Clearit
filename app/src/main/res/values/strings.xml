@@ -1,21 +1,142 @@
 <resources>
     <string name="app_name">Clearit</string>
-    <string name="app_title">Media Clarity Enhancer</string>
-    <string name="app_description">Select an image or video and Clearit will enhance clarity and save the result to your gallery albums.</string>
-    <string name="select_image">Select image</string>
-    <string name="select_video">Select video</string>
-    <string name="enhance_video">Enhance media</string>
-    <string name="no_media_selected">No media selected</string>
-    <string name="selected_media">Selected: %1$s</string>
-    <string name="select_media_prompt">Please select an image or video first.</string>
-    <string name="unsupported_media">Unsupported media type selected.</string>
-    <string name="storage_permission_required">Storage permission is required to save output to gallery on this Android version.</string>
-    <string name="album_images">Pictures/Clearit</string>
-    <string name="album_videos">Movies/Clearit</string>
-    <string name="media_type_image">image</string>
-    <string name="media_type_video">video</string>
-    <string name="processing">Enhancing %1$s. Please wait...</string>
-    <string name="status_idle">Status: idle</string>
-    <string name="output_ready">Done. Saved to album: %1$s</string>
-    <string name="processing_failed">Enhancement failed: %1$s</string>
+
+    <!-- Empty state -->
+    <string name="empty_title">Make your photos clearer</string>
+    <string name="empty_body">Open a photo to enhance it automatically or fine-tune every detail by hand. Everything runs on your device.</string>
+
+    <!-- Toolbar -->
+    <string name="action_open">Open photo</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_redo">Redo</string>
+    <string name="action_compare">Compare before/after</string>
+    <string name="action_save">Save</string>
+    <string name="action_share">Share</string>
+    <string name="action_histogram">Histogram</string>
+    <string name="action_reset">Reset all</string>
+    <string name="action_help">How to use</string>
+    <string name="action_about">About</string>
+
+    <!-- Tabs -->
+    <string name="tab_auto">Auto</string>
+    <string name="tab_presets">Presets</string>
+    <string name="tab_light">Light</string>
+    <string name="tab_color">Color</string>
+    <string name="tab_detail">Detail</string>
+    <string name="tab_effects">Effects</string>
+    <string name="tab_transform">Size &amp; Rotate</string>
+
+    <!-- Auto panel -->
+    <string name="auto_enhance">Auto enhance</string>
+    <string name="auto_strength">Strength</string>
+    <string name="auto_scope">Auto adjusts</string>
+    <string name="auto_scope_light">Light</string>
+    <string name="auto_scope_color">Color</string>
+    <string name="auto_scope_detail">Detail</string>
+    <string name="auto_hint">Auto analyses exposure, white balance, noise and sharpness, then sets the sliders. Fine-tune anything afterwards in the other tabs.</string>
+    <string name="auto_applied">Auto enhancement applied — fine-tune in the other tabs</string>
+    <string name="analysis_title">Photo analysis</string>
+    <string name="analysis_exposure">Exposure: %1$s (median brightness %2$d%%)</string>
+    <string name="analysis_exposure_dark">underexposed</string>
+    <string name="analysis_exposure_bright">overexposed</string>
+    <string name="analysis_exposure_ok">balanced</string>
+    <string name="analysis_color">Color: %1$s</string>
+    <string name="analysis_color_warm">warm cast</string>
+    <string name="analysis_color_cool">cool / blue cast</string>
+    <string name="analysis_color_green">green cast</string>
+    <string name="analysis_color_magenta">magenta cast</string>
+    <string name="analysis_color_neutral">neutral</string>
+    <string name="analysis_noise">Noise: %1$s</string>
+    <string name="analysis_level_low">low</string>
+    <string name="analysis_level_medium">moderate</string>
+    <string name="analysis_level_high">high</string>
+    <string name="analysis_detail">Fine detail: %1$s</string>
+    <string name="analysis_clipping">Clipped shadows %1$.1f%% · clipped highlights %2$.1f%%</string>
+
+    <!-- Presets -->
+    <string name="presets_hint">Presets replace all sliders but keep rotation and upscale. Tap one, then fine-tune.</string>
+    <string name="preset_original">Original</string>
+    <string name="preset_clearit">Clearit</string>
+    <string name="preset_vivid">Vivid</string>
+    <string name="preset_portrait">Portrait</string>
+    <string name="preset_landscape">Landscape</string>
+    <string name="preset_low_light">Low light</string>
+    <string name="preset_crisp">Crisp</string>
+    <string name="preset_soft_matte">Soft matte</string>
+    <string name="preset_warm">Warm</string>
+    <string name="preset_cool">Cool</string>
+    <string name="preset_bw">Black &amp; white</string>
+
+    <!-- Sliders -->
+    <string name="adj_exposure">Exposure</string>
+    <string name="adj_contrast">Contrast</string>
+    <string name="adj_highlights">Highlights</string>
+    <string name="adj_shadows">Shadows</string>
+    <string name="adj_whites">Whites</string>
+    <string name="adj_blacks">Blacks</string>
+    <string name="adj_temperature">Temperature</string>
+    <string name="adj_tint">Tint</string>
+    <string name="adj_vibrance">Vibrance</string>
+    <string name="adj_saturation">Saturation</string>
+    <string name="adj_clarity">Clarity</string>
+    <string name="adj_texture">Texture</string>
+    <string name="adj_dehaze">Dehaze</string>
+    <string name="adj_sharpening">Sharpening</string>
+    <string name="adj_noise_reduction">Noise reduction</string>
+    <string name="adj_color_noise_reduction">Color noise reduction</string>
+    <string name="adj_vignette">Vignette</string>
+    <string name="slider_hint">Long-press a slider name to reset it.</string>
+    <string name="value_exposure">%1$+.2f EV</string>
+
+    <!-- Transform -->
+    <string name="rotate_left">Rotate left</string>
+    <string name="rotate_right">Rotate right</string>
+    <string name="flip_horizontal">Flip horizontal</string>
+    <string name="flip_vertical">Flip vertical</string>
+    <string name="upscale_title">Upscale (super resolution)</string>
+    <string name="upscale_hint">Enlarges with high-quality bicubic interpolation plus detail-restoring sharpening. The preview shows the look; the size is applied on save.</string>
+    <string name="upscale_factor">%1$d×</string>
+    <string name="output_size">Output: %1$s</string>
+    <string name="output_size_limited">Output: %1$s (limited by this device\'s memory)</string>
+
+    <!-- Preview -->
+    <string name="label_before">Before</string>
+    <string name="label_after">After</string>
+    <string name="cd_preview">Photo preview. Long-press to see the original, pinch to zoom.</string>
+    <string name="info_original">Original</string>
+    <string name="info_rendering">Rendering…</string>
+    <string name="info_size">%1$s</string>
+
+    <!-- Export -->
+    <string name="export_title">Save enhanced photo</string>
+    <string name="export_format">Format</string>
+    <string name="format_jpeg">JPEG</string>
+    <string name="format_png">PNG</string>
+    <string name="format_webp">WebP</string>
+    <string name="export_quality">Quality: %1$d</string>
+    <string name="export_quality_lossless">Quality: lossless</string>
+    <string name="export_info">%1$s · saved to Pictures/Clearit</string>
+    <string name="export_save">Save</string>
+    <string name="export_share">Save &amp; share</string>
+    <string name="cancel">Cancel</string>
+    <string name="exporting">Saving… %1$d%%</string>
+    <string name="saved">Saved %1$s to Pictures/Clearit</string>
+    <string name="saved_limited">Saved %1$s to Pictures/Clearit (reduced to fit device memory)</string>
+    <string name="share_chooser">Share photo</string>
+    <string name="open_in_gallery">View</string>
+
+    <!-- Errors -->
+    <string name="error_open_failed">Could not open this image: %1$s</string>
+    <string name="error_save_failed">Could not save: %1$s</string>
+    <string name="error_out_of_memory">Not enough memory. Try a smaller upscale factor.</string>
+    <string name="error_unknown">unknown error</string>
+    <string name="storage_permission_required">Storage permission is needed to save photos on this Android version.</string>
+    <string name="no_image">Open a photo first.</string>
+
+    <!-- Help / about -->
+    <string name="help_title">How to use Clearit</string>
+    <string name="help_body">1. Tap “Open photo” (or share a photo to Clearit from any app).\n\n2. AUTO: tap “Auto enhance”. Choose which areas auto may change and how strongly.\n\n3. PRESETS: one-tap looks, fully editable afterwards.\n\n4. MANUAL: Light, Color, Detail and Effects tabs contain every slider. Long-press a slider name to reset it.\n\n5. SIZE &amp; ROTATE: rotate, flip and upscale 2×–4×.\n\n6. Long-press the photo to see the original, or turn on Compare for a split view. Pinch to zoom, double-tap to zoom in/out.\n\n7. Tap Save to choose JPEG, PNG or WebP. Photos are saved at full resolution to Pictures/Clearit. Your original is never modified.</string>
+    <string name="about_title">About Clearit</string>
+    <string name="about_body">Clearit %1$s\n\nOn-device photo enhancer. No network access, no accounts, no tracking — your photos never leave your phone.</string>
+    <string name="ok">OK</string>
 </resources>
