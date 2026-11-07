@@ -52,7 +52,7 @@ The full guide is in [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 ## Build
 
 ```bash
-./gradlew testDebugUnitTest   # 44 JVM unit tests for the enhancement engine
+./gradlew testDebugUnitTest   # 47 JVM tests: engine + Robolectric end-to-end UI test
 ./gradlew assembleDebug       # app/build/outputs/apk/debug/app-debug.apk
 ./gradlew assembleRelease     # minified release APK (see docs/BUILDING.md for signing)
 ```

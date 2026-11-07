@@ -72,7 +72,11 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
         unitTests.isIncludeAndroidResources = true
-        unitTests.all { it.maxHeapSize = "1g" }
+        unitTests.all {
+            it.maxHeapSize = "1g"
+            // Robolectric needs reflective access to FileDescriptor on JDK 17.
+            it.jvmArgs("--add-opens=java.base/java.io=ALL-UNNAMED")
+        }
     }
 }
 

@@ -13,7 +13,7 @@ ui/HistogramView
 
 - **`engine/`** has *no Android imports*. It operates on `PixelImage` (width, height and an
   `IntArray` of packed `0xAARRGGBB` pixels). This makes every algorithm unit-testable on the
-  JVM (`app/src/test/java/com/clearit/engine`, 44 tests) and keeps preview and export
+  JVM (`app/src/test/java/com/clearit/engine`) and keeps preview and export
   bit-identical in behaviour.
 - **`io/BitmapIO`** is the only place that touches `Bitmap`, `ImageDecoder`, `MediaStore` and
   `ExifInterface`.
@@ -116,7 +116,8 @@ to normal. `android:largeHeap="true"` raises the budget on most devices.
 Android 9+: `ImageDecoder` with software allocation (hardware bitmaps can't be read), sRGB
 target colour space, EXIF orientation, partial-image tolerance and `setTargetSize`.
 Android 8: `BitmapFactory` with power-of-two subsampling + exact scaling and manual EXIF
-rotation/flip via `ExifInterface`.
+rotation/flip via `ExifInterface`. On Android 9+ the `BitmapFactory` path is also used as a
+fallback if `ImageDecoder` rejects a file.
 
 ## Testing
 
@@ -130,3 +131,9 @@ NR, sharpening, dehaze, vignette; rotations/flips; resampling (flat-colour exact
 anti-aliasing, smoothness); pipeline identity, immutability, output size, progress and
 cancellation; auto exposure (dark & bright), auto white balance (blue & warm casts), noise
 detection, option groups/strength, and validity of suggestions on extreme images.
+
+`app/src/test/java/com/clearit/ui/MainActivityTest.kt` runs the real activity under
+Robolectric (native graphics) with an in-memory MediaStore provider: it checks that every
+tab inflates, then opens a photo via an `ACTION_VIEW` intent, runs auto enhance, verifies the
+sliders mirror the state, applies a preset, undoes/redoes, rotates, sets 2× upscale and
+exports — asserting the saved JPEG has the expected rotated, upscaled dimensions.

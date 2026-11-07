@@ -81,8 +81,8 @@ class MainActivityTest {
         Robolectric.setupContentProvider(FakeMediaProvider::class.java, MediaStore.AUTHORITY)
         val bitmap = Bitmap.createBitmap(240, 160, Bitmap.Config.ARGB_8888)
         for (y in 0 until 160) for (x in 0 until 240) {
-            // dark, blue-tinted gradient: something auto should brighten and warm up
-            bitmap.setPixel(x, y, Color.rgb(20 + x / 6, 25 + y / 5, 60 + x / 5))
+            // dim, blue-tinted greyish gradient: auto should brighten it and warm it up
+            bitmap.setPixel(x, y, Color.rgb(60 + x / 5, 68 + y / 5, 88 + x / 5))
         }
         val file = File(context.cacheDir, "input.png")
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }

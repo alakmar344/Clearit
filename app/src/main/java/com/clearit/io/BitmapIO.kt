@@ -93,24 +93,35 @@ object BitmapIO {
      */
     fun decode(context: Context, uri: Uri, maxLongEdge: Int = Int.MAX_VALUE, maxPixels: Long = Long.MAX_VALUE): Bitmap {
         val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-                // Software allocation is required to read pixels; hardware bitmaps are GPU-only.
-                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                decoder.setTargetColorSpace(ColorSpace.get(ColorSpace.Named.SRGB))
-                decoder.setOnPartialImageListener { true } // show what we can of truncated files
-                val s = fitScale(info.size.width, info.size.height, maxLongEdge, maxPixels)
-                if (s < 1f) {
-                    decoder.setTargetSize(
-                        max(1, (info.size.width * s).roundToInt()),
-                        max(1, (info.size.height * s).roundToInt()),
-                    )
-                }
+            try {
+                decodeWithImageDecoder(context, uri, maxLongEdge, maxPixels)
+            } catch (primary: java.io.IOException) {
+                // Some files/providers that ImageDecoder rejects still decode with BitmapFactory.
+                runCatching { decodeLegacy(context, uri, maxLongEdge, maxPixels) }
+                    .getOrElse { throw primary }
             }
         } else {
             decodeLegacy(context, uri, maxLongEdge, maxPixels)
         }
         return ensureArgb(bitmap)
+    }
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.P)
+    private fun decodeWithImageDecoder(context: Context, uri: Uri, maxLongEdge: Int, maxPixels: Long): Bitmap {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        return ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            // Software allocation is required to read pixels; hardware bitmaps are GPU-only.
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            decoder.setTargetColorSpace(ColorSpace.get(ColorSpace.Named.SRGB))
+            decoder.setOnPartialImageListener { true } // show what we can of truncated files
+            val s = fitScale(info.size.width, info.size.height, maxLongEdge, maxPixels)
+            if (s < 1f) {
+                decoder.setTargetSize(
+                    max(1, (info.size.width * s).roundToInt()),
+                    max(1, (info.size.height * s).roundToInt()),
+                )
+            }
+        }
     }
 
     private fun decodeLegacy(context: Context, uri: Uri, maxLongEdge: Int, maxPixels: Long): Bitmap {

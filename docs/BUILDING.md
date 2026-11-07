@@ -13,7 +13,7 @@ The Gradle wrapper (Gradle 8.7) is committed — always use `./gradlew`.
 
 | Command | Result |
 |---|---|
-| `./gradlew testDebugUnitTest` | Runs the engine unit tests (reports in `app/build/reports/tests/`) |
+| `./gradlew testDebugUnitTest` | Runs engine unit tests and the Robolectric UI test (reports in `app/build/reports/tests/`). The first run downloads Robolectric's Android runtime. |
 | `./gradlew assembleDebug` | `app/build/outputs/apk/debug/app-debug.apk` (package `com.clearit.debug`, installs side by side with release) |
 | `./gradlew assembleRelease` | `app/build/outputs/apk/release/app-release.apk` (R8-minified, resource-shrunk) |
 | `./gradlew lintDebug` | Android lint |
