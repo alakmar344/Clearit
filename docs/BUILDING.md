@@ -66,21 +66,29 @@ In **Settings → Secrets and variables → Actions** add:
 
 ## CI workflows
 
-### Build Android APK (`.github/workflows/build-apk.yml`)
+> **Setup note:** the v1 workflows are in [`ci/workflows/`](../ci/workflows/) because the
+> tool that pushed this branch can't write to `.github/workflows/` (GitHub requires the
+> `workflow` permission). Copy them into `.github/workflows/` once using the GitHub website;
+> [`ci/README.md`](../ci/README.md) has the two-minute steps. Until then, the original
+> *Build Android APK* workflow keeps running unchanged.
+
+### Build Android APK (`build-apk.yml`)
 On every push to main/master, every PR and on demand: runs unit tests, builds the debug APK
 and uploads it as the `clearit-debug-apk` artifact (plus test reports).
 
-### Release (`.github/workflows/release.yml`)
-Publishes **GitHub Release `v<versionName>`** with `clearit-v<versionName>.apk` and its
-SHA-256 checksum. Release notes come from `docs/releases/v<versionName>.md` (falls back to
-`CHANGELOG.md`). It runs when:
+### Release (`release.yml`): same version, rolling updates
+Keeps **one GitHub Release per version**, `v<versionName>` (currently **`v1.new`**), with
+`clearit-v1.new.apk` and its SHA-256 checksum attached.
 
-1. a tag `v*` is pushed (the tag must match `version.properties`), or
-2. main/master is pushed and **no release exists yet** for the current version — so merging
-   a branch that bumps the version publishes it automatically, or
-3. it is started manually (**Actions → Release → Run workflow**); if the release exists its
-   APK is rebuilt and replaced.
+- Every push or merge to main/master rebuilds the APK and **replaces the files on the
+  existing release**, creating the release first if needed. The notes are refreshed with
+  the build number and commit.
+- The version name stays `1.new`. Each build gets
+  `versionCode = versionCode × 10000 + workflow run number` (through the
+  `CLEARIT_VERSION_CODE` environment variable), so phones install every new APK as an update.
+- Pushing a tag `v*` (must match `version.properties`) or **Actions → Release → Run
+  workflow** does the same.
+- Release notes come from `docs/releases/v<versionName>.md` (falls back to `CHANGELOG.md`).
 
-### Publishing v1.new
-Merge this branch into `main` — the Release workflow sees that `v1.new` does not exist yet
-and creates it. Alternatively push the tag: `git tag v1.new && git push origin v1.new`.
+To start a genuinely new version, change `versionName` and bump `versionCode` in
+`version.properties`; the next push creates a new release next to the old one.

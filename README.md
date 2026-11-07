@@ -57,8 +57,9 @@ The full guide is in [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 ./gradlew assembleRelease     # minified release APK (see docs/BUILDING.md for signing)
 ```
 
-Requires JDK 17 and the Android SDK (platform 34). CI builds a debug APK on every push/PR;
-the **Release** workflow publishes signed APKs to GitHub Releases.
+Requires JDK 17 and the Android SDK (platform 34). CI builds a debug APK on every push/PR.
+The **Release** workflow keeps GitHub Release **v1.new** up to date with every update. Enable
+it once by following [`ci/README.md`](ci/README.md).
 
 ## Project layout
 

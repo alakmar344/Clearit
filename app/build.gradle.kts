@@ -22,7 +22,10 @@ android {
         applicationId = "com.clearit"
         minSdk = 26
         targetSdk = 34
-        versionCode = versionProps.getProperty("versionCode").toInt()
+        // CI may raise the build number (e.g. per release run) while the visible version name
+        // stays the same, so phones accept each new build as an update of the same version.
+        versionCode = System.getenv("CLEARIT_VERSION_CODE")?.toIntOrNull()
+            ?: versionProps.getProperty("versionCode").toInt()
         versionName = versionProps.getProperty("versionName")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

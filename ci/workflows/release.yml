@@ -1,13 +1,18 @@
 name: Release
 
-# Publishes a GitHub Release named "v<versionName>" (from version.properties) with a
-# signed release APK attached.
+# Keeps ONE GitHub Release per version ("v<versionName>" from version.properties, e.g. v1.new)
+# and refreshes it with every update:
 #
-# Triggers:
-#  - pushing a tag such as v1.new
-#  - pushing to main/master when no release exists yet for the current version
-#    (so merging a version bump publishes it automatically)
+#  - push to main/master  -> rebuilds the APK and replaces the files on the existing release
+#                            (creates the release first if it does not exist yet)
+#  - push of a tag v*     -> same, the tag must match version.properties
 #  - manual "Run workflow"
+#
+# The visible version stays the same (e.g. "1.new"), but every build gets a higher
+# versionCode (base versionCode + workflow run number), so Android installs each new
+# APK as an update over the previous one without uninstalling.
+#
+# To publish a NEW version instead, change versionName in version.properties.
 on:
   push:
     tags:
@@ -21,7 +26,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 
 jobs:
@@ -38,46 +43,29 @@ jobs:
         id: version
         run: |
           name=$(grep '^versionName=' version.properties | cut -d= -f2 | tr -d '[:space:]')
+          base=$(grep '^versionCode=' version.properties | cut -d= -f2 | tr -d '[:space:]')
           tag="v${name}"
+          code=$(( base * 10000 + GITHUB_RUN_NUMBER ))
           echo "name=${name}" >> "$GITHUB_OUTPUT"
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
+          echo "CLEARIT_VERSION_CODE=${code}" >> "$GITHUB_ENV"
           if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" != "${tag}" ]]; then
             echo "::error::Tag ${GITHUB_REF_NAME} does not match versionName ${name} in version.properties (expected ${tag})"
             exit 1
           fi
-
-      - name: Check for existing release
-        id: existing
-        run: |
-          if gh release view "${{ steps.version.outputs.tag }}" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Decide whether to publish
-        id: decide
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "branch" && "${GITHUB_EVENT_NAME}" == "push" && "${{ steps.existing.outputs.exists }}" == "true" ]]; then
-            echo "Release ${{ steps.version.outputs.tag }} already exists; bump versionName to publish a new one."
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-          fi
+          echo "Building ${tag} with versionCode ${code}"
 
       - name: Set up JDK 17
-        if: steps.decide.outputs.publish == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Gradle
-        if: steps.decide.outputs.publish == 'true'
         uses: gradle/actions/setup-gradle@v4
 
       - name: Decode signing key
-        if: steps.decide.outputs.publish == 'true'
         env:
           KEYSTORE_BASE64: ${{ secrets.CLEARIT_KEYSTORE_BASE64 }}
         run: |
@@ -90,7 +78,6 @@ jobs:
           fi
 
       - name: Test and build release APK
-        if: steps.decide.outputs.publish == 'true'
         env:
           CLEARIT_KEYSTORE_PASSWORD: ${{ secrets.CLEARIT_KEYSTORE_PASSWORD }}
           CLEARIT_KEY_ALIAS: ${{ secrets.CLEARIT_KEY_ALIAS }}
@@ -98,7 +85,6 @@ jobs:
         run: ./gradlew --no-daemon testDebugUnitTest assembleRelease
 
       - name: Prepare assets
-        if: steps.decide.outputs.publish == 'true'
         id: assets
         run: |
           apk="clearit-${{ steps.version.outputs.tag }}.apk"
@@ -106,20 +92,27 @@ jobs:
           sha256sum "${apk}" > "${apk}.sha256"
           notes="docs/releases/${{ steps.version.outputs.tag }}.md"
           [[ -f "${notes}" ]] || notes="CHANGELOG.md"
+          {
+            cat "${notes}"
+            echo
+            echo "---"
+            echo "Build ${{ steps.version.outputs.code }} · commit ${GITHUB_SHA::7} · $(date -u '+%Y-%m-%d %H:%M UTC')"
+          } > release-notes.md
           echo "apk=${apk}" >> "$GITHUB_OUTPUT"
-          echo "notes=${notes}" >> "$GITHUB_OUTPUT"
 
-      - name: Publish GitHub Release
-        if: steps.decide.outputs.publish == 'true'
+      - name: Publish or update GitHub Release
         run: |
           tag="${{ steps.version.outputs.tag }}"
-          if [[ "${{ steps.existing.outputs.exists }}" == "true" ]]; then
-            gh release upload "${tag}" "${{ steps.assets.outputs.apk }}" "${{ steps.assets.outputs.apk }}.sha256" --clobber --repo "$GITHUB_REPOSITORY"
+          apk="${{ steps.assets.outputs.apk }}"
+          if gh release view "${tag}" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Updating existing release ${tag}"
+            gh release upload "${tag}" "${apk}" "${apk}.sha256" --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit "${tag}" --notes-file release-notes.md --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "${tag}" \
-              "${{ steps.assets.outputs.apk }}" "${{ steps.assets.outputs.apk }}.sha256" \
+            echo "Creating release ${tag}"
+            gh release create "${tag}" "${apk}" "${apk}.sha256" \
               --repo "$GITHUB_REPOSITORY" \
               --target "${GITHUB_SHA}" \
               --title "Clearit ${tag}" \
-              --notes-file "${{ steps.assets.outputs.notes }}"
+              --notes-file release-notes.md
           fi
