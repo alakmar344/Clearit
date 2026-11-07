@@ -279,13 +279,16 @@ class EditorViewModel(application: Application, private val saved: SavedStateHan
                     val sourceBudget = maxProcessingPixels / (scale * scale)
                     val bitmap = BitmapIO.decode(app, uri, maxPixels = sourceBudget)
                     val limited = sourceSize != null && bitmap.width.toLong() * bitmap.height < sourceSize.pixels
-                    var image: PixelImage? = BitmapIO.toPixelImage(bitmap)
-                    bitmap.recycle()
-                    _state.update { it.copy(exportProgress = 0.05f) }
-                    val output = ImageProcessor.process(image!!, adjustments, includeUpscale = true) { f ->
-                        _state.update { it.copy(exportProgress = 0.05f + f * 0.85f) }
+                    // The decoded source is only reachable inside run{} so it can be collected
+                    // as soon as the pipeline no longer needs it.
+                    val output = run {
+                        val image = BitmapIO.toPixelImage(bitmap)
+                        bitmap.recycle()
+                        _state.update { it.copy(exportProgress = 0.05f) }
+                        ImageProcessor.process(image, adjustments, includeUpscale = true) { f ->
+                            _state.update { it.copy(exportProgress = 0.05f + f * 0.85f) }
+                        }
                     }
-                    image = null
                     val outBitmap = BitmapIO.toBitmap(output)
                     _state.update { it.copy(exportProgress = 0.92f) }
                     val savedUri = withContext(Dispatchers.IO) {

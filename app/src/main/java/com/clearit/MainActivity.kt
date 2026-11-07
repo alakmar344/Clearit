@@ -234,10 +234,10 @@ class MainActivity : AppCompatActivity() {
             valueTo = 150f
             stepSize = 5f
             value = 100f
-            setLabelFormatter { "${it.roundToInt()}%" }
-            addOnChangeListener { _, v, _ -> strengthValue.text = "${v.roundToInt()}%" }
+            setLabelFormatter { getString(R.string.percent, it.roundToInt()) }
+            addOnChangeListener { _, v, _ -> strengthValue.text = getString(R.string.percent, v.roundToInt()) }
         }
-        strengthValue.text = "100%"
+        strengthValue.text = getString(R.string.percent, 100)
         controls += autoStrength
         addView(strengthRow)
 

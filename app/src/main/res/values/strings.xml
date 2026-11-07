@@ -29,6 +29,7 @@
     <!-- Auto panel -->
     <string name="auto_enhance">Auto enhance</string>
     <string name="auto_strength">Strength</string>
+    <string name="percent">%1$d%%</string>
     <string name="auto_scope">Auto adjusts</string>
     <string name="auto_scope_light">Light</string>
     <string name="auto_scope_color">Color</string>
@@ -104,8 +105,6 @@
     <string name="label_after">After</string>
     <string name="cd_preview">Photo preview. Long-press to see the original, pinch to zoom.</string>
     <string name="info_original">Original</string>
-    <string name="info_rendering">Rendering…</string>
-    <string name="info_size">%1$s</string>
 
     <!-- Export -->
     <string name="export_title">Save enhanced photo</string>
@@ -123,7 +122,6 @@
     <string name="saved">Saved %1$s to Pictures/Clearit</string>
     <string name="saved_limited">Saved %1$s to Pictures/Clearit (reduced to fit device memory)</string>
     <string name="share_chooser">Share photo</string>
-    <string name="open_in_gallery">View</string>
 
     <!-- Errors -->
     <string name="error_open_failed">Could not open this image: %1$s</string>

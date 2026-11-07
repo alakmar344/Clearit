@@ -36,8 +36,11 @@ class CompareImageView @JvmOverloads constructor(
 
     var after: Bitmap? = null
         set(value) {
-            val aspectChanged = field == null || value == null ||
-                field!!.width * value.height != field!!.height * value.width
+            val old = field
+            // Draft and full previews differ by rounding, so compare aspect with a tolerance;
+            // only a real change (new photo, rotation) resets the zoom.
+            val aspectChanged = old == null || value == null ||
+                abs(old.width.toFloat() / old.height - value.width.toFloat() / value.height) > 0.02f
             field = value
             if (aspectChanged) resetZoom()
             invalidate()
